@@ -7,14 +7,17 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 const DEMO_ROLES = [
-  { label: "Executive", email: "admin@europeroutewise.demo" },
+  { label: "Super Admin", email: "admin@europeroutewise.demo" },
+  { label: "Company Admin", email: "company@europeroutewise.demo" },
   { label: "Fleet Manager", email: "fleet@europeroutewise.demo" },
   { label: "Dispatcher", email: "dispatch@europeroutewise.demo" },
-  { label: "Driver", email: "driver@europeroutewise.demo" },
   { label: "Compliance", email: "compliance@europeroutewise.demo" },
+  { label: "Driver", email: "driver@europeroutewise.demo" },
   { label: "Finance", email: "finance@europeroutewise.demo" },
   { label: "Customer", email: "customer@europeroutewise.demo" },
 ];
+
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +25,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -30,6 +34,22 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    router.push("/dashboard");
+  }
+
+  async function handleDemoLogin(demoEmail: string) {
+    setDemoLoading(demoEmail);
+    setError(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: demoEmail,
+      password: DEMO_PASSWORD,
+    });
+    setDemoLoading(null);
     if (error) {
       setError(error.message);
       return;
@@ -102,10 +122,11 @@ export default function LoginPage() {
               <button
                 key={r.email}
                 type="button"
-                onClick={() => setEmail(r.email)}
-                className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60 hover:bg-white/5"
+                disabled={demoLoading !== null}
+                onClick={() => handleDemoLogin(r.email)}
+                className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60 hover:bg-white/5 disabled:opacity-50"
               >
-                {r.label}
+                {demoLoading === r.email ? "Signing in..." : r.label}
               </button>
             ))}
           </div>
