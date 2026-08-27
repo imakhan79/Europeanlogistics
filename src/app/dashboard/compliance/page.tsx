@@ -12,13 +12,20 @@ import {
   CABOTAGE_RECORDS,
   POSTING_RECORDS,
 } from "@/lib/mock/compliance";
+import { RULES } from "@/lib/compliance/rules";
+import { evaluateCategory, evaluateOne, parseHoursMinutes } from "@/lib/compliance/engine";
+import type { RuleSeverity } from "@/lib/compliance/types";
 
-const TABS = ["Overview", "Driver Hours", "Tachograph", "Cabotage", "Posting"] as const;
+const TABS = ["Overview", "Driver Hours", "Tachograph", "Cabotage", "Posting", "Rules Engine"] as const;
 type Tab = (typeof TABS)[number];
 
 const SEVERITY_TONE = { low: "default", medium: "warning", high: "danger" } as const;
-const CABOTAGE_TONE = { compliant: "success", at_risk: "warning", violation: "danger" } as const;
-const CABOTAGE_LABEL = { compliant: "Compliant", at_risk: "At Risk", violation: "Violation" } as const;
+const RULE_SEVERITY_TONE: Record<RuleSeverity, "default" | "warning" | "danger"> = {
+  low: "default",
+  medium: "warning",
+  high: "danger",
+  critical: "danger",
+};
 const DECLARATION_TONE = { filed: "success", pending: "warning", missing: "danger" } as const;
 const DOCS_TONE = { complete: "success", incomplete: "warning" } as const;
 
@@ -84,7 +91,8 @@ export default function ComplianceOSPage() {
               </thead>
               <tbody>
                 {DRIVERS.map((d) => {
-                  const warning = d.remainingToday.startsWith("00h") || d.remainingToday.startsWith("01h");
+                  const remainingMinutes = parseHoursMinutes(d.remainingToday);
+                  const [evaluation] = evaluateCategory("driver", { remainingMinutes });
                   return (
                     <tr key={d.driverCard} className="border-b border-white/5 last:border-0">
                       <td className="px-4 py-3 font-medium">{d.name}</td>
@@ -93,7 +101,9 @@ export default function ComplianceOSPage() {
                       <td className="px-4 py-3 text-white/70">{d.nextBreak}</td>
                       <td className="px-4 py-3 text-white/70">{d.dailyRest}</td>
                       <td className="px-4 py-3">
-                        <Badge tone={warning ? "warning" : "success"}>{warning ? "WARNING" : "SAFE"}</Badge>
+                        <Badge tone={evaluation.passed ? "success" : "warning"} title={evaluation.message}>
+                          {evaluation.passed ? "SAFE" : "WARNING"}
+                        </Badge>
                       </td>
                     </tr>
                   );
@@ -154,13 +164,20 @@ export default function ComplianceOSPage() {
 
       {tab === "Cabotage" && (
         <div className="space-y-4">
-          {CABOTAGE_RECORDS.map((r) => (
+          {CABOTAGE_RECORDS.map((r) => {
+            const [evaluation] = evaluateCategory("cabotage", {
+              operations: r.operations,
+              maxOperations: r.maxOperations,
+            });
+            const tone = !evaluation.passed ? "danger" : evaluation.severity === "medium" ? "warning" : "success";
+            const label = !evaluation.passed ? "Violation" : evaluation.severity === "medium" ? "At Risk" : "Compliant";
+            return (
             <Card key={r.vehicle}>
               <CardHeader>
                 <CardTitle>
                   {r.vehicle} · {r.driver}
                 </CardTitle>
-                <Badge tone={CABOTAGE_TONE[r.status]}>{CABOTAGE_LABEL[r.status]}</Badge>
+                <Badge tone={tone} title={evaluation.message}>{label}</Badge>
               </CardHeader>
               <div className="mb-3 flex items-center gap-2 text-sm">
                 {r.countries.map((c, i) => (
@@ -179,7 +196,8 @@ export default function ComplianceOSPage() {
                 </span>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -199,18 +217,63 @@ export default function ComplianceOSPage() {
                 </tr>
               </thead>
               <tbody>
-                {POSTING_RECORDS.map((p, i) => (
-                  <tr key={i} className="border-b border-white/5 last:border-0">
-                    <td className="px-4 py-3 font-medium">{p.driver}</td>
-                    <td className="px-4 py-3 text-white/70">{p.hostCountry}</td>
-                    <td className="px-4 py-3 text-white/70">{p.operation}</td>
-                    <td className="px-4 py-3 text-white/50">{p.startDate}</td>
-                    <td className="px-4 py-3 text-white/50">{p.endDate}</td>
+                {POSTING_RECORDS.map((p, i) => {
+                  const declEval = evaluateOne("posting-declaration-01", { declaration: p.declaration });
+                  const docsEval = evaluateOne("posting-documents-01", { documents: p.documents });
+                  return (
+                    <tr key={i} className="border-b border-white/5 last:border-0">
+                      <td className="px-4 py-3 font-medium">{p.driver}</td>
+                      <td className="px-4 py-3 text-white/70">{p.hostCountry}</td>
+                      <td className="px-4 py-3 text-white/70">{p.operation}</td>
+                      <td className="px-4 py-3 text-white/50">{p.startDate}</td>
+                      <td className="px-4 py-3 text-white/50">{p.endDate}</td>
+                      <td className="px-4 py-3">
+                        <Badge tone={DECLARATION_TONE[p.declaration]} title={declEval?.message}>
+                          {p.declaration.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge tone={DOCS_TONE[p.documents]} title={docsEval?.message}>
+                          {p.documents.toUpperCase()}
+                        </Badge>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {tab === "Rules Engine" && (
+        <Card className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs text-white/40">
+                  <th className="px-4 py-3 font-medium">Rule</th>
+                  <th className="px-4 py-3 font-medium">Category</th>
+                  <th className="px-4 py-3 font-medium">Country</th>
+                  <th className="px-4 py-3 font-medium">Effective</th>
+                  <th className="px-4 py-3 font-medium">Expiry</th>
+                  <th className="px-4 py-3 font-medium">Version</th>
+                  <th className="px-4 py-3 font-medium">Source</th>
+                  <th className="px-4 py-3 font-medium">Severity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {RULES.map((r) => (
+                  <tr key={r.id} className="border-b border-white/5 last:border-0">
+                    <td className="px-4 py-3 font-medium">{r.name}</td>
+                    <td className="px-4 py-3 text-white/60">{r.category.replace("_", " ")}</td>
+                    <td className="px-4 py-3 text-white/70">{r.country}</td>
+                    <td className="px-4 py-3 text-white/50">{r.effectiveDate}</td>
+                    <td className="px-4 py-3 text-white/50">{r.expiryDate ?? "—"}</td>
+                    <td className="px-4 py-3 text-white/50">v{r.version}</td>
+                    <td className="px-4 py-3 text-white/40">{r.source}</td>
                     <td className="px-4 py-3">
-                      <Badge tone={DECLARATION_TONE[p.declaration]}>{p.declaration.toUpperCase()}</Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge tone={DOCS_TONE[p.documents]}>{p.documents.toUpperCase()}</Badge>
+                      <Badge tone={RULE_SEVERITY_TONE[r.severity]}>{r.severity.toUpperCase()}</Badge>
                     </td>
                   </tr>
                 ))}
@@ -220,10 +283,11 @@ export default function ComplianceOSPage() {
         </Card>
       )}
 
-      {tab !== "Overview" && (
+      {tab !== "Overview" && tab !== "Rules Engine" && (
         <p className="mt-4 flex items-center gap-1.5 text-xs text-white/30">
-          <AlertTriangle className="h-3 w-3" /> Compliance rules are illustrative mock data pending
-          the versioned rules engine and authoritative legal sources.
+          <AlertTriangle className="h-3 w-3" /> Status badges are computed by the compliance rules
+          engine (see Rules Engine tab), not hard-coded in the UI. Underlying data is still mock,
+          pending real fleet/driver telemetry and authoritative legal review.
         </p>
       )}
     </div>

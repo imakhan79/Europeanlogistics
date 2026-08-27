@@ -39,7 +39,6 @@ export type CabotageRecord = {
   entryDate: string;
   operations: number;
   maxOperations: number;
-  status: "compliant" | "at_risk" | "violation";
 };
 
 export const CABOTAGE_RECORDS: CabotageRecord[] = [
@@ -50,7 +49,6 @@ export const CABOTAGE_RECORDS: CabotageRecord[] = [
     entryDate: "2026-08-25",
     operations: 2,
     maxOperations: 3,
-    status: "compliant",
   },
   {
     vehicle: "FR-1298",
@@ -59,7 +57,6 @@ export const CABOTAGE_RECORDS: CabotageRecord[] = [
     entryDate: "2026-08-24",
     operations: 1,
     maxOperations: 3,
-    status: "compliant",
   },
   {
     vehicle: "IT-8821",
@@ -68,7 +65,6 @@ export const CABOTAGE_RECORDS: CabotageRecord[] = [
     entryDate: "2026-08-20",
     operations: 3,
     maxOperations: 3,
-    status: "at_risk",
   },
 ];
 
