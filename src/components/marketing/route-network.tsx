@@ -1,6 +1,6 @@
 import { CITY_COORDS, ROUTE_NETWORK_EDGES, project } from "@/lib/map/projection";
 
-const TRAVELING_EDGES = [0, 4, 9, 13, 17];
+const PULSE_NODES = ["Berlin", "Rotterdam", "Milan", "Paris", "Warsaw"];
 
 export function RouteNetwork({ className = "" }: { className?: string }) {
   return (
@@ -13,14 +13,8 @@ export function RouteNetwork({ className = "" }: { className?: string }) {
           backgroundSize: "6% 6%",
         }}
       />
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs>
-          <radialGradient id="node-glow" r="70%">
-            <stop offset="0%" stopColor="rgb(96 165 250)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="rgb(96 165 250)" stopOpacity="0" />
-          </radialGradient>
-        </defs>
 
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
         {ROUTE_NETWORK_EDGES.map(([a, b], i) => {
           const pa = project(CITY_COORDS[a]);
           const pb = project(CITY_COORDS[b]);
@@ -38,35 +32,26 @@ export function RouteNetwork({ className = "" }: { className?: string }) {
             />
           );
         })}
-
-        {Object.entries(CITY_COORDS).map(([name, coords]) => {
-          const { x, y } = project(coords);
-          return (
-            <g key={name}>
-              <circle cx={x} cy={y} r={2.2} fill="url(#node-glow)" />
-              <circle cx={x} cy={y} r={0.35} fill="rgb(191 219 254)" vectorEffect="non-scaling-stroke" />
-            </g>
-          );
-        })}
-
-        {TRAVELING_EDGES.map((edgeIndex, i) => {
-          const [a, b] = ROUTE_NETWORK_EDGES[edgeIndex];
-          const pa = project(CITY_COORDS[a]);
-          const pb = project(CITY_COORDS[b]);
-          return (
-            <circle
-              key={`travel-${a}-${b}`}
-              r={0.5}
-              fill="rgb(251 191 36)"
-              className="route-travel"
-              style={{
-                offsetPath: `path("M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}")`,
-                animationDelay: `${i * 1.4}s`,
-              }}
-            />
-          );
-        })}
       </svg>
+
+      {Object.entries(CITY_COORDS).map(([name, coords]) => {
+        const { x, y } = project(coords);
+        const pulse = PULSE_NODES.includes(name);
+        return (
+          <span
+            key={name}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${x}%`, top: `${y}%` }}
+          >
+            {pulse && (
+              <span className="route-node-pulse absolute inset-0 -m-1.5 rounded-full bg-blue-400/50" />
+            )}
+            <span
+              className={`relative block rounded-full bg-blue-200 ${pulse ? "h-1.5 w-1.5" : "h-1 w-1 bg-blue-300/70"}`}
+            />
+          </span>
+        );
+      })}
     </div>
   );
 }

@@ -42,26 +42,20 @@ body {
   animation: route-dash 4s linear infinite;
 }
 
-@keyframes route-travel {
+@keyframes route-node-pulse {
   0% {
-    offset-distance: 0%;
-    opacity: 0;
+    transform: scale(0.6);
+    opacity: 0.7;
   }
-  8% {
-    opacity: 1;
-  }
-  92% {
-    opacity: 1;
-  }
+  70%,
   100% {
-    offset-distance: 100%;
+    transform: scale(2.2);
     opacity: 0;
   }
 }
 
-.route-travel {
-  offset-rotate: 0deg;
-  animation: route-travel 6s linear infinite;
+.route-node-pulse {
+  animation: route-node-pulse 2.4s ease-out infinite;
 }
 
 @keyframes float-orb {
@@ -80,7 +74,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .route-dash,
-  .route-travel,
+  .route-node-pulse,
   .float-orb {
     animation: none !important;
   }
