@@ -18,6 +18,7 @@ import {
   FileText,
   Bell,
   Bot,
+  Workflow,
   Plug,
   Settings,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export const NAV_MODULES: ModuleLink[] = [
   { label: "Documents", href: "/dashboard/documents", icon: FileText },
   { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { label: "AI Logistics Agent", href: "/dashboard/ai-agent", icon: Bot },
+  { label: "AI Agents & Workflows", href: "/dashboard/agents", icon: Workflow },
   { label: "Integrations", href: "/dashboard/integrations", icon: Plug },
   { label: "Administration", href: "/dashboard/admin", icon: Settings },
 ];
