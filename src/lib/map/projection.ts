@@ -29,7 +29,36 @@ export const CITY_COORDS: Record<string, LatLon> = {
   Frankfurt: { lat: 50.11, lon: 8.68 },
   Verona: { lat: 45.44, lon: 10.99 },
   Cologne: { lat: 50.94, lon: 6.96 },
+  Paris: { lat: 48.8566, lon: 2.3522 },
+  Warsaw: { lat: 52.2297, lon: 21.0122 },
+  Madrid: { lat: 40.4168, lon: -3.7038 },
+  Vienna: { lat: 48.2082, lon: 16.3738 },
+  Hamburg: { lat: 53.5511, lon: 9.9937 },
+  London: { lat: 51.5074, lon: -0.1278 },
 };
+
+export const ROUTE_NETWORK_EDGES: [string, string][] = [
+  ["London", "Paris"],
+  ["London", "Rotterdam"],
+  ["Paris", "Antwerp"],
+  ["Paris", "Lyon"],
+  ["Lyon", "Milan"],
+  ["Lyon", "Barcelona"],
+  ["Barcelona", "Zaragoza"],
+  ["Zaragoza", "Madrid"],
+  ["Rotterdam", "Antwerp"],
+  ["Rotterdam", "Hamburg"],
+  ["Hamburg", "Berlin"],
+  ["Berlin", "Warsaw"],
+  ["Berlin", "Munich"],
+  ["Munich", "Vienna"],
+  ["Munich", "Milan"],
+  ["Munich", "Stuttgart"],
+  ["Stuttgart", "Frankfurt"],
+  ["Frankfurt", "Cologne"],
+  ["Milan", "Verona"],
+  ["Milan", "Bologna"],
+];
 
 export const COUNTRY_LABELS: { label: string; lat: number; lon: number }[] = [
   { label: "DE", lat: 51, lon: 10.4 },

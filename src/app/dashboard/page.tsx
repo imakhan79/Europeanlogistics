@@ -1,32 +1,57 @@
+import {
+  AlertTriangle,
+  Fuel as FuelIcon,
+  Gauge,
+  ShieldCheck,
+  Truck,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const KPIS = [
-  { label: "Active Trucks", value: "248" },
-  { label: "Active Drivers", value: "276" },
-  { label: "Deliveries Today", value: "684" },
-  { label: "Delayed", value: "17" },
-  { label: "Compliance", value: "97.8%" },
-  { label: "Fleet Utilization", value: "86%" },
-  { label: "Empty KM", value: "8.7%" },
-  { label: "Estimated Profit", value: "€184K" },
+  { label: "Active Trucks", value: "248", icon: Truck, tone: "text-blue-400 bg-blue-500/15" },
+  { label: "Active Drivers", value: "276", icon: Users, tone: "text-blue-400 bg-blue-500/15" },
+  { label: "Deliveries Today", value: "684", icon: Gauge, tone: "text-emerald-400 bg-emerald-500/15" },
+  { label: "Delayed", value: "17", icon: AlertTriangle, tone: "text-amber-400 bg-amber-500/15" },
+  { label: "Compliance", value: "97.8%", icon: ShieldCheck, tone: "text-emerald-400 bg-emerald-500/15" },
+  { label: "Fleet Utilization", value: "86%", icon: Gauge, tone: "text-blue-400 bg-blue-500/15" },
+  { label: "Empty KM", value: "8.7%", icon: FuelIcon, tone: "text-amber-400 bg-amber-500/15" },
+  { label: "Estimated Profit", value: "€184K", icon: Wallet, tone: "text-emerald-400 bg-emerald-500/15" },
 ];
 
 export default function ExecutiveDashboard() {
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold">Executive Dashboard</h1>
-      <p className="mb-6 text-sm text-white/50">
-        Live overview across fleet, compliance and financial performance.
-      </p>
+      <div className="glass-panel relative mb-6 overflow-hidden rounded-2xl px-6 py-6">
+        <div
+          className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-600/20 blur-[80px]"
+          aria-hidden
+        />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <h1 className="font-heading mb-1 text-xl font-semibold">Executive Dashboard</h1>
+            <p className="text-sm text-white/50">
+              Live overview across fleet, compliance and financial performance.
+            </p>
+          </div>
+          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 sm:flex">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> Live network
+          </span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {KPIS.map((kpi) => (
           <Card key={kpi.label}>
-            <CardHeader>
-              <CardTitle>{kpi.label}</CardTitle>
-            </CardHeader>
+            <div className="mb-3 flex items-center justify-between">
+              <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${kpi.tone}`}>
+                <kpi.icon className="h-4 w-4" />
+              </span>
+            </div>
             <p className="text-2xl font-semibold">{kpi.value}</p>
+            <p className="text-xs text-white/50">{kpi.label}</p>
           </Card>
         ))}
       </div>
