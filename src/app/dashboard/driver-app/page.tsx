@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, BatteryMedium, MapPin, Send, Smartphone } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   DRIVER_APP_KPIS,
