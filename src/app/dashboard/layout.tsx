@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Bell, Search, Sparkles } from "lucide-react";
 import { NAV_MODULES } from "@/lib/modules";
+import { UserMenu } from "@/components/dashboard/user-menu";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-4">
             <Sparkles className="h-4 w-4 text-blue-400" />
             <Bell className="h-4 w-4 text-white/60" />
-            <div className="h-7 w-7 rounded-full bg-blue-600/30" />
+            <UserMenu />
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
